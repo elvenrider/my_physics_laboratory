@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Lab — 물리학 교육 자료실</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f3ee;
+      --bg2: #eeeae0;
+      --ink: #1a1814;
+      --ink2: #4a4640;
+      --accent: #1e4d8c;
+      --accent2: #c8401a;
+      --rule: #c8c0b0;
+      --card-bg: #fffef9;
+      --mono: 'DM Mono', monospace;
+      --serif: 'Cormorant Garamond', serif;
+      --korean: 'Noto Serif KR', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--korean);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 0;
+      background: var(--ink);
+      color: var(--bg);
+      overflow: hidden;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 340px;
+    }
+
+    .header-left {
+      padding: 56px 56px 56px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-right {
+      position: relative;
+      background: var(--accent);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Wave SVG decoration */
+    .wave-bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0.18;
+    }
+
+    .site-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rule);
+      margin-bottom: 20px;
+    }
+
+    .site-title {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 4vw, 3.6rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+
+    .site-subtitle {
+      font-family: var(--korean);
+      font-size: 1rem;
+      color: rgba(245, 243, 238, 0.65);
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .header-meta {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .meta-item {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(245, 243, 238, 0.5);
+      letter-spacing: 0.05em;
+    }
+
+    .meta-sep { color: rgba(245, 243, 238, 0.2); }
+
+    /* Equation display */
+    .eq-display {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      color: rgba(255,255,255,0.92);
+      text-align: center;
+      padding: 32px;
+      line-height: 2;
+    }
+
+    .eq-display sub, .eq-display sup {
+      font-size: 0.65em;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--rule);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      gap: 0;
+      align-items: center;
+    }
+
+    nav a {
+      display: inline-block;
+      padding: 16px 22px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--ink2);
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+      padding: 64px 0 32px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 40px;
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: 0.15em;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .section-title-ko {
+      font-family: var(--korean);
+      font-size: 0.9rem;
+      color: var(--ink2);
+      margin-left: auto;
+    }
+
+    /* ── PROFILE ── */
+    #profile .profile-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      background: var(--accent);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar-icon {
+      font-size: 48px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .profile-info h2 {
+      font-family: var(--serif);
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .profile-role {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 16px;
+    }
+
+    .profile-desc {
+      color: var(--ink2);
+      font-size: 0.95rem;
+      max-width: 540px;
+      margin-bottom: 24px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      background: var(--bg2);
+      border: 1px solid var(--rule);
+      color: var(--ink2);
+      border-radius: 2px;
+    }
+
+    /* ── CARD GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 32px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover { background: #fffdf4; }
+    .card:hover::before { transform: scaleX(1); }
+
+    .card-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--rule);
+      letter-spacing: 0.1em;
+    }
+
+    .card-title {
+      font-family: var(--korean);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--ink2);
+      flex: 1;
+    }
+
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ── SIMULATION CARDS ── */
+    .sim-card {
+      background: var(--card-bg);
+      border: 1px solid var(--rule);
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: center;
+      gap: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: -1px;
+    }
+
+    .sim-card:hover {
+      background: #fffdf4;
+      border-color: var(--accent);
+      z-index: 1;
+      position: relative;
+    }
+
+    .sim-icon-wrap {
+      width: 64px;
+      height: 64px;
+      background: var(--bg2);
+      border: 1px solid var(--rule);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border-radius: 2px;
+    }
+
+    .sim-info h3 {
+      font-family: var(--korean);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .sim-info p {
+      font-size: 0.85rem;
+      color: var(--ink2);
+    }
+
+    .sim-arrow {
+      font-family: var(--mono);
+      font-size: 20px;
+      color: var(--rule);
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .sim-card:hover .sim-arrow {
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    /* ── CONTACTS ── */
+    .contact-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .contact-item {
+      background: var(--card-bg);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.2s;
+    }
+
+    .contact-item:hover { background: #fffdf4; }
+
+    .contact-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .contact-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink2);
+      margin-bottom: 2px;
+    }
+
+    .contact-value {
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    /* ── NOTICE BAR ── */
+    .notice {
+      background: var(--bg2);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--accent2);
+      padding: 16px 24px;
+      font-size: 0.875rem;
+      color: var(--ink2);
+      margin-bottom: 40px;
+      font-family: var(--mono);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: rgba(245,243,238,0.45);
+      text-align: center;
+      padding: 40px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    footer a {
+      color: rgba(245,243,238,0.6);
+      text-decoration: none;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-left > * {
+      animation: fadeUp 0.6s ease both;
+    }
+    .site-label    { animation-delay: 0.05s; }
+    .site-title    { animation-delay: 0.15s; }
+    .site-subtitle { animation-delay: 0.25s; }
+    .header-meta   { animation-delay: 0.35s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .header-inner { grid-template-columns: 1fr; }
+      .header-right { display: none; }
+      .header-left  { padding: 48px 32px; }
+      main { padding: 0 24px 60px; }
+      .nav-inner { padding: 0 16px; overflow-x: auto; }
+      #profile .profile-grid { grid-template-columns: 1fr; }
+      .sim-card { grid-template-columns: 60px 1fr; }
+      .sim-arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <p class="site-label">Physics Education Repository</p>
+      <h1 class="site-title">Physics<br>Lab</h1>
+      <p class="site-subtitle">고등학교 물리학 &amp; 영재학급 교육 자료실</p>
+      <div class="header-meta">
+        <span class="meta-item">고등학교 물리학</span>
+        <span class="meta-sep">·</span>
+        <span class="meta-item">영재학급</span>
+        <span class="meta-sep">·</span>
+        <span class="meta-item">시뮬레이션</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- Wave / standing wave decoration -->
+      <svg class="wave-bg" viewBox="0 0 500 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="white" stroke-width="1.5" fill="none">
+          <!-- Standing wave harmonics -->
+          <path d="M0 170 Q62.5 80 125 170 Q187.5 260 250 170 Q312.5 80 375 170 Q437.5 260 500 170"/>
+          <path d="M0 170 Q83 60 166 170 Q249 280 332 170 Q415 60 500 170" opacity="0.5"/>
+          <path d="M0 170 Q125 40 250 170 Q375 300 500 170" opacity="0.3"/>
+          <!-- Nodes -->
+          <circle cx="0"   cy="170" r="3" fill="white" opacity="0.5"/>
+          <circle cx="125" cy="170" r="3" fill="white" opacity="0.5"/>
+          <circle cx="250" cy="170" r="3" fill="white" opacity="0.5"/>
+          <circle cx="375" cy="170" r="3" fill="white" opacity="0.5"/>
+          <circle cx="500" cy="170" r="3" fill="white" opacity="0.5"/>
+          <!-- Grid lines -->
+          <line x1="0" y1="170" x2="500" y2="170" stroke-dasharray="4 6" opacity="0.2"/>
+        </g>
+      </svg>
+      <div class="eq-display">
+        v = fλ<br>
+        f<sub>n</sub> = n·v / 2L<br>
+        <span style="font-size:0.6em; font-family:'DM Mono',monospace; font-style:normal; opacity:0.6">n = 1, 2, 3 …</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#profile">소개</a>
+    <a href="#gifted">영재학급</a>
+    <a href="#highschool">고등물리</a>
+    <a href="#simulations">시뮬레이션</a>
+    <a href="#contact">연락처</a>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- 공지 -->
+  <div style="height:1px;"></div>
+  <div class="notice" style="margin-top:40px;">
+    📌 이 페이지는 강의안 및 시뮬레이션 자료 공유를 위한 저장소입니다. 지속적으로 업데이트됩니다.
+  </div>
+
+  <!-- ── PROFILE ── -->
+  <section id="profile">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Profile</h2>
+      <span class="section-title-ko">교사 소개</span>
+    </div>
+    <div class="profile-grid">
+      <div class="profile-avatar">
+        <span class="avatar-icon">⚛</span>
+      </div>
+      <div class="profile-info">
+        <h2>물리 교사</h2>
+        <p class="profile-role">Physics Teacher · Gifted Education</p>
+        <p class="profile-desc">
+          고등학교 물리학 및 영재학급을 담당하고 있습니다.
+          탐구 중심의 실험 수업과 시뮬레이션을 통해 학생들이 물리 현상을 직관적으로 이해할 수 있도록 수업 자료를 개발합니다.
+        </p>
+        <div class="tag-list">
+          <span class="tag">파동</span>
+          <span class="tag">역학</span>
+          <span class="tag">전자기학</span>
+          <span class="tag">탐구실험</span>
+          <span class="tag">영재교육</span>
+          <span class="tag">phyphox</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 영재학급 ── -->
+  <section id="gifted">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Gifted Class</h2>
+      <span class="section-title-ko">영재학급 강의안</span>
+    </div>
+    <div class="card-grid">
+      <a href="#" class="card">
+        <span class="card-num">G-01</span>
+        <h3 class="card-title">공기 기둥 공명과 음속 측정</h3>
+        <p class="card-desc">정상파·경계조건 유도 → phyphox 실험 → 오차분석까지 아우르는 탐구 강의안</p>
+        <span class="card-tag">파동 · 음향</span>
+      </a>
+      <a href="#" class="card">
+        <span class="card-num">G-02</span>
+        <h3 class="card-title">준비 중</h3>
+        <p class="card-desc">다음 강의안을 업로드할 예정입니다.</p>
+        <span class="card-tag">Coming Soon</span>
+      </a>
+      <a href="#" class="card">
+        <span class="card-num">G-03</span>
+        <h3 class="card-title">준비 중</h3>
+        <p class="card-desc">다음 강의안을 업로드할 예정입니다.</p>
+        <span class="card-tag">Coming Soon</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── 고등물리 ── -->
+  <section id="highschool">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">High School Physics</h2>
+      <span class="section-title-ko">고등학교 물리학 강의</span>
+    </div>
+    <div class="card-grid">
+      <a href="#" class="card">
+        <span class="card-num">H-01</span>
+        <h3 class="card-title">역학과 에너지</h3>
+        <p class="card-desc">뉴턴 법칙, 운동량, 에너지 보존 — 개념 정리 및 문제풀이 자료</p>
+        <span class="card-tag">역학</span>
+      </a>
+      <a href="#" class="card">
+        <span class="card-num">H-02</span>
+        <h3 class="card-title">파동과 빛</h3>
+        <p class="card-desc">파동의 성질, 간섭·회절, 도플러 효과, 빛의 이중성</p>
+        <span class="card-tag">파동 · 광학</span>
+      </a>
+      <a href="#" class="card">
+        <span class="card-num">H-03</span>
+        <h3 class="card-title">전자기학</h3>
+        <p class="card-desc">전기장·자기장, 전자기 유도, 교류회로 기초</p>
+        <span class="card-tag">전자기</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── 시뮬레이션 ── -->
+  <section id="simulations">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Simulations</h2>
+      <span class="section-title-ko">물리 시뮬레이션</span>
+    </div>
+    <div style="border: 1px solid var(--rule); margin-bottom: 8px;">
+      <a href="#" class="sim-card">
+        <div class="sim-icon-wrap">〜</div>
+        <div class="sim-info">
+          <h3>정상파 시뮬레이터</h3>
+          <p>현의 진동 모드, 마디·배 시각화, 배음열 확인</p>
+        </div>
+        <span class="sim-arrow">→</span>
+      </a>
+      <a href="#" class="sim-card">
+        <div class="sim-icon-wrap">🔊</div>
+        <div class="sim-info">
+          <h3>공기 기둥 공명 시뮬레이터</h3>
+          <p>개구단·폐구단 조건 선택, 공명 조건 및 음속 계산</p>
+        </div>
+        <span class="sim-arrow">→</span>
+      </a>
+      <a href="#" class="sim-card">
+        <div class="sim-icon-wrap">⚡</div>
+        <div class="sim-info">
+          <h3>준비 중</h3>
+          <p>다음 시뮬레이션을 업로드할 예정입니다.</p>
+        </div>
+        <span class="sim-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── CONTACT ── -->
+  <section id="contact">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Contact</h2>
+      <span class="section-title-ko">연락처 / 링크</span>
+    </div>
+    <div class="contact-row">
+      <a href="https://github.com/YOUR_USERNAME" target="_blank" class="contact-item">
+        <span class="contact-icon">⌥</span>
+        <div>
+          <p class="contact-label">GitHub</p>
+          <p class="contact-value">github.com/YOUR_USERNAME</p>
+        </div>
+      </a>
+      <a href="mailto:your@email.com" class="contact-item">
+        <span class="contact-icon">✉</span>
+        <div>
+          <p class="contact-label">Email</p>
+          <p class="contact-value">your@email.com</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2025 Physics Lab · Built with GitHub Pages</p>
+  <p style="margin-top:8px;">
+    <a href="https://github.com/YOUR_USERNAME">GitHub Repository</a>
+  </p>
+</footer>
+
+</body>
+</html>
