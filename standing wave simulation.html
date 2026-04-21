@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파동 시뮬레이션 — 영재학급 물리 실험</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',system-ui,sans-serif;background:#020617;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:16px}
+h1{font-size:22px;font-weight:800;text-align:center;color:#fff;letter-spacing:-0.5px}
+h1 .hl{color:#a855f7}
+.sub{text-align:center;font-size:12px;color:#64748b;margin-top:4px}
+
+/* TABS */
+.tabs{display:flex;gap:6px;margin:16px 0 12px;justify-content:center}
+.tab{padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(148,163,184,.15);background:rgba(30,41,59,.5);color:#94a3b8;transition:all .2s}
+.tab:hover{background:rgba(51,65,85,.6)}
+.tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed;box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.tab .emoji{margin-right:6px}
+
+/* CANVAS WRAP */
+.canvas-wrap{border-radius:14px;overflow:hidden;border:1px solid rgba(51,65,85,.5);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+canvas{display:block;width:100%;background:#0f172a}
+
+/* CONTROLS */
+.ctrls{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.ctrls{grid-template-columns:1fr}}
+.ctrl-box{background:rgba(30,41,59,.5);border-radius:12px;padding:12px;border:1px solid rgba(51,65,85,.3)}
+.ctrl-label{font-size:11px;color:#64748b;font-weight:600;margin-bottom:8px;display:block}
+.ctrl-label .hl-y{color:#fbbf24}
+.btn-row{display:flex;gap:5px;flex-wrap:wrap}
+.btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .2s;flex:1;min-width:50px;text-align:center}
+.btn-off{background:rgba(51,65,85,.6);color:#cbd5e1}.btn-off:hover{background:rgba(71,85,105,.7)}
+.btn-pur{background:#7c3aed;color:#fff;box-shadow:0 2px 12px rgba(124,58,237,.3)}
+.btn-red{background:rgba(220,38,38,.8);color:#fff}
+.btn-grn{background:rgba(5,150,105,.8);color:#fff}
+.btn-blue{background:rgba(37,99,235,.8);color:#fff;box-shadow:0 2px 12px rgba(37,99,235,.3)}
+.btn-green2{background:rgba(22,163,74,.8);color:#fff;box-shadow:0 2px 12px rgba(22,163,74,.3)}
+.btn-org{background:rgba(234,88,12,.8);color:#fff}
+
+.slider-row{display:flex;align-items:center;gap:8px;margin-top:4px}
+.slider-row label{font-size:11px;color:#94a3b8;min-width:30px}
+.slider-row .val{font-size:11px;font-family:monospace;color:#a78bfa;min-width:30px;text-align:right}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#334155;border-radius:4px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#a855f7;cursor:pointer}
+
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between}
+.toggle{width:42px;height:22px;border-radius:11px;cursor:pointer;position:relative;transition:background .2s}
+.toggle.off{background:#475569}
+.toggle.on{background:#eab308}
+.toggle .knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.off .knob{transform:translateX(2px)}
+.toggle.on .knob{transform:translateX(22px)}
+
+/* INFO */
+.info-box{margin-top:12px;background:rgba(30,41,59,.3);border-radius:12px;padding:14px;border:1px solid rgba(51,65,85,.2)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center}
+.info-grid .il{font-size:10px;color:#64748b;margin-bottom:3px}
+.info-grid .iv{font-size:13px;font-family:monospace}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare-card{border-radius:10px;padding:12px;border:1px solid rgba(51,65,85,.3);background:rgba(15,23,42,.5)}
+.compare-card.active{border-color:rgba(124,58,237,.4);background:rgba(124,58,237,.05)}
+.compare-card h3{font-size:12px;font-weight:700;margin-bottom:6px}
+.compare-card p{font-size:11px;color:#cbd5e1;line-height:1.6}
+
+.footer{text-align:center;font-size:11px;color:#475569;margin-top:10px;padding-bottom:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>파동 <span class="hl">시뮬레이션</span></h1>
+  <div class="sub">영재학급 물리 실험 — 파동의 중첩과 기주공명</div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab1" onclick="switchTab(1)"><span class="emoji">🌊</span>파동의 중첩</div>
+    <div class="tab" id="tab2" onclick="switchTab(2)"><span class="emoji">🔬</span>기주공명</div>
+  </div>
+
+  <!-- ============ SIM 1: SUPERPOSITION ============ -->
+  <div id="sim1">
+    <div class="canvas-wrap"><canvas id="c1"></canvas></div>
+    <div class="ctrls">
+      <div class="ctrl-box">
+        <span class="ctrl-label">중첩 모드</span>
+        <div class="btn-row">
+          <div class="btn btn-pur" id="m-opp" onclick="setMode('opposite')">반대 방향 (정상파)</div>
+          <div class="btn btn-off" id="m-same" onclick="setMode('same')">같은 방향</div>
+          <div class="btn btn-off" id="m-cust" onclick="setMode('custom')">위상차 조절</div>
+        </div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">재생 제어</span>
+        <div class="btn-row" style="margin-bottom:6px">
+          <div class="btn btn-red" id="s1-play" onclick="togglePlay1()">⏸ 정지</div>
+          <div class="btn btn-off" onclick="S1.time=0">↺ 리셋</div>
+        </div>
+        <div class="slider-row">
+          <label>속도</label>
+          <input type="range" min="0.1" max="3" step="0.1" value="1" oninput="S1.speed=+this.value;document.getElementById('s1-spd').textContent='×'+S1.speed.toFixed(1)">
+          <span class="val" id="s1-spd">×1.0</span>
+        </div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">파수 (진동수 비례)</span>
+        <div class="slider-row">
+          <input type="range" min="1" max="6" step="0.5" value="2" oninput="S1.freq=+this.value;document.getElementById('s1-freq').textContent=S1.freq">
+          <span class="val" id="s1-freq">2</span>
+        </div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">진폭</span>
+        <div class="slider-row">
+          <label style="color:#ef4444">A₁</label>
+          <input type="range" min="0" max="1.5" step="0.1" value="1" oninput="S1.amp1=+this.value;document.getElementById('s1-a1').textContent=S1.amp1.toFixed(1)" style="accent-color:#ef4444">
+          <span class="val" id="s1-a1" style="color:#f87171">1.0</span>
+        </div>
+        <div class="slider-row" style="margin-top:4px">
+          <label style="color:#3b82f6">A₂</label>
+          <input type="range" min="0" max="1.5" step="0.1" value="1" oninput="S1.amp2=+this.value;document.getElementById('s1-a2').textContent=S1.amp2.toFixed(1)" style="accent-color:#3b82f6">
+          <span class="val" id="s1-a2" style="color:#60a5fa">1.0</span>
+        </div>
+      </div>
+      <div class="ctrl-box" id="phase-box" style="display:none">
+        <span class="ctrl-label">위상차 (Phase Difference)</span>
+        <div class="slider-row">
+          <input type="range" min="0" max="2" step="0.05" value="0" oninput="S1.phase=+this.value;document.getElementById('s1-ph').textContent=(S1.phase*180).toFixed(0)+'°'">
+          <span class="val" id="s1-ph">0°</span>
+        </div>
+      </div>
+      <div class="ctrl-box" id="node-box">
+        <div class="toggle-wrap">
+          <span class="ctrl-label" style="margin:0">마디(node) · 배(antinode) 표시</span>
+          <div class="toggle on" id="s1-nodes" onclick="toggleNodes()"><div class="knob"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="info-grid">
+        <div><div class="il">정상파 수식</div><div class="iv" style="color:#c084fc">y = 2A sin(kx) cos(ωt)</div></div>
+        <div><div class="il">마디 조건</div><div class="iv" style="color:#fbbf24">sin(kx) = 0</div></div>
+        <div><div class="il">배 조건</div><div class="iv" style="color:#22d3ee">|sin(kx)| = 1</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SIM 2: AIR COLUMN ============ -->
+  <div id="sim2" style="display:none">
+    <div class="canvas-wrap"><canvas id="c2"></canvas></div>
+    <div class="ctrls">
+      <div class="ctrl-box">
+        <span class="ctrl-label">관의 종류</span>
+        <div class="btn-row">
+          <div class="btn btn-blue" id="p-closed" onclick="setPipe('closed')">🔒 닫힌 관 (한쪽 닫힘)</div>
+          <div class="btn btn-off" id="p-open" onclick="setPipe('open')">🔓 열린 관 (양쪽 열림)</div>
+        </div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">배진동 차수 <span class="hl-y" id="odd-note">(홀수 배진동만!)</span></span>
+        <div class="btn-row" id="harm-btns"></div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">표시 모드</span>
+        <div class="btn-row">
+          <div class="btn btn-red" id="d-disp" onclick="setDisplay('disp')">변위 분포</div>
+          <div class="btn btn-off" id="d-pres" onclick="setDisplay('pres')">압력 분포</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:6px" id="disp-note">변위: 닫힌 끝 = 마디(고정), 열린 끝 = 배(최대)</div>
+      </div>
+      <div class="ctrl-box">
+        <span class="ctrl-label">재생 제어</span>
+        <div class="btn-row" style="margin-bottom:6px">
+          <div class="btn btn-red" id="s2-play" onclick="togglePlay2()">⏸ 정지</div>
+          <div class="btn btn-off" onclick="S2.time=0">↺ 리셋</div>
+        </div>
+        <div class="slider-row">
+          <label>속도</label>
+          <input type="range" min="0.2" max="3" step="0.1" value="1" oninput="S2.speed=+this.value;document.getElementById('s2-spd').textContent='×'+S2.speed.toFixed(1)">
+          <span class="val" id="s2-spd">×1.0</span>
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="compare-grid">
+        <div class="compare-card active" id="cc-closed">
+          <h3 style="color:#60a5fa">닫힌 관 (기주공명 실험)</h3>
+          <p>경계: <span style="color:#fbbf24">마디</span>(닫힘) — <span style="color:#22d3ee">배</span>(열림)<br>
+          공명: L = (2n−1)λ/4<br>홀수 배진동만 존재<br>기본 진동수: f₁ = v/4L</p>
+        </div>
+        <div class="compare-card" id="cc-open">
+          <h3 style="color:#34d399">열린 관 (관악기 원리)</h3>
+          <p>경계: <span style="color:#22d3ee">배</span>(열림) — <span style="color:#22d3ee">배</span>(열림)<br>
+          공명: L = nλ/2<br>모든 배진동 존재<br>기본 진동수: f₁ = v/2L</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">N = 마디(node) · A = 배(antinode) · 영재학급 물리 실험</div>
+</div>
+
+<script>
+// ===================== SHARED =====================
+const dpr = window.devicePixelRatio||1;
+function setupCanvas(cv,w,h){cv.width=w*dpr;cv.height=h*dpr;cv.style.width=w+'px';cv.style.height=h+'px';const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);return ctx}
+function switchTab(n){
+  document.getElementById('tab1').className='tab'+(n===1?' active':'');
+  document.getElementById('tab2').className='tab'+(n===2?' active':'');
+  document.getElementById('sim1').style.display=n===1?'':'none';
+  document.getElementById('sim2').style.display=n===2?'':'none';
+}
+
+// ===================== SIM 1: SUPERPOSITION =====================
+const S1={time:0,playing:true,freq:2,amp1:1,amp2:1,mode:'opposite',phase:0,showNodes:true,speed:1};
+const CW=780,M=40;
+
+function setMode(m){
+  S1.mode=m;
+  document.getElementById('m-opp').className='btn '+(m==='opposite'?'btn-pur':'btn-off');
+  document.getElementById('m-same').className='btn '+(m==='same'?'btn-pur':'btn-off');
+  document.getElementById('m-cust').className='btn '+(m==='custom'?'btn-pur':'btn-off');
+  document.getElementById('phase-box').style.display=m==='custom'?'':'none';
+  document.getElementById('node-box').style.display=m==='opposite'?'':'none';
+}
+function togglePlay1(){S1.playing=!S1.playing;document.getElementById('s1-play').className='btn '+(S1.playing?'btn-red':'btn-grn');document.getElementById('s1-play').textContent=S1.playing?'⏸ 정지':'▶ 재생'}
+function toggleNodes(){S1.showNodes=!S1.showNodes;document.getElementById('s1-nodes').className='toggle '+(S1.showNodes?'on':'off')}
+
+function drawSim1(t){
+  const cv=document.getElementById('c1');
+  const ctx=setupCanvas(cv,CW,480);
+  const W=CW,H=480;
+  ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='rgba(148,163,184,0.06)';ctx.lineWidth=1;
+  for(let i=0;i<W;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke()}
+  for(let i=0;i<H;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke()}
+
+  const dir=S1.mode==='opposite'?-1:1;
+  const ph=S1.mode==='custom'?S1.phase*Math.PI:0;
+  const f=S1.freq, sp=S1.speed;
+
+  function drawW(yOff,amp,direction,phOff,color,label){
+    ctx.save();ctx.globalAlpha=0.9;
+    ctx.strokeStyle='rgba(148,163,184,0.2)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(M,yOff);ctx.lineTo(W-M,yOff);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.shadowColor=color;ctx.shadowBlur=8;ctx.beginPath();
+    const k=f*2*Math.PI, om=f*2*Math.PI*sp;
+    for(let px=M;px<=W-M;px+=2){
+      const x=(px-M)/(W-2*M);
+      const y=amp*45*Math.sin(k*x-direction*om*t+phOff);
+      px===M?ctx.moveTo(px,yOff-y):ctx.lineTo(px,yOff-y);
+    }
+    ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle=color;ctx.font='bold 13px Pretendard,sans-serif';ctx.textAlign='left';ctx.fillText(label,M,yOff-50);
+    ctx.restore();
+  }
+
+  drawW(90,S1.amp1,1,0,'#ef4444','파동 1 (→ 진행)');
+  const lbl2=S1.mode==='opposite'?'파동 2 (← 진행)':S1.mode==='same'?'파동 2 (→ 진행)':`파동 2 (위상차 ${(S1.phase*180).toFixed(0)}°)`;
+  drawW(230,S1.amp2,dir,ph,'#3b82f6',lbl2);
+
+  // Sum
+  const y3=385;
+  ctx.strokeStyle='rgba(148,163,184,0.2)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(M,y3);ctx.lineTo(W-M,y3);ctx.stroke();ctx.setLineDash([]);
+
+  ctx.strokeStyle='#a855f7';ctx.lineWidth=3;ctx.shadowColor='#a855f7';ctx.shadowBlur=12;ctx.beginPath();
+  const k=f*2*Math.PI, om=f*2*Math.PI*sp;
+  for(let px=M;px<=W-M;px+=2){
+    const x=(px-M)/(W-2*M);
+    const v1=S1.amp1*45*Math.sin(k*x-om*t);
+    const v2=S1.amp2*45*Math.sin(k*x-dir*om*t+ph);
+    px===M?ctx.moveTo(px,y3-(v1+v2)):ctx.lineTo(px,y3-(v1+v2));
+  }
+  ctx.stroke();ctx.shadowBlur=0;
+  ctx.globalAlpha=0.07;ctx.fillStyle='#a855f7';ctx.lineTo(W-M,y3);ctx.lineTo(M,y3);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+
+  // Nodes
+  if(S1.showNodes&&S1.mode==='opposite'&&Math.abs(S1.amp1-S1.amp2)<0.15){
+    for(let n=0;n<=f*2+1;n++){
+      const xn=n/(f*2);if(xn>1)break;const px=M+xn*(W-2*M);
+      ctx.fillStyle='#fbbf24';ctx.shadowColor='#fbbf24';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,y3,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+      ctx.font='10px Pretendard';ctx.textAlign='center';ctx.fillText('마디',px,y3+16);
+    }
+    for(let n=0;n<f*2;n++){
+      const xa=(n+0.5)/(f*2);if(xa>1)break;const px=M+xa*(W-2*M);
+      ctx.strokeStyle='#22d3ee';ctx.lineWidth=1;ctx.setLineDash([2,3]);
+      ctx.beginPath();ctx.moveTo(px,y3-(S1.amp1+S1.amp2)*45);ctx.lineTo(px,y3+(S1.amp1+S1.amp2)*45);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#22d3ee';ctx.font='10px Pretendard';ctx.textAlign='center';ctx.fillText('배',px,y3-(S1.amp1+S1.amp2)*45-6);
+    }
+  }
+  ctx.fillStyle='#a855f7';ctx.font='bold 13px Pretendard';ctx.textAlign='left';ctx.fillText('중첩 결과 (파동 1 + 파동 2)',M,y3-65);
+  if(S1.mode==='opposite'&&Math.abs(S1.amp1-S1.amp2)<0.15){ctx.fillStyle='#22d3ee';ctx.font='bold 12px Pretendard';ctx.textAlign='right';ctx.fillText('→ 정상파 형성!',W-M,y3-65)}
+
+  [155,310].forEach(sy=>{ctx.strokeStyle='rgba(148,163,184,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(M,sy);ctx.lineTo(W-M,sy);ctx.stroke()});
+}
+
+// ===================== SIM 2: AIR COLUMN =====================
+const S2={time:0,playing:true,pipe:'closed',harm:1,showPres:false,speed:1};
+const TL=100,TR=680,TT=80,TH=160,TW=580;
+
+function setPipe(p){
+  S2.pipe=p;S2.harm=1;
+  document.getElementById('p-closed').className='btn '+(p==='closed'?'btn-blue':'btn-off');
+  document.getElementById('p-open').className='btn '+(p==='open'?'btn-green2':'btn-off');
+  document.getElementById('odd-note').style.display=p==='closed'?'':'none';
+  document.getElementById('cc-closed').className='compare-card'+(p==='closed'?' active':'');
+  document.getElementById('cc-open').className='compare-card'+(p==='open'?' active':'');
+  buildHarmBtns();
+}
+function setHarm(h){S2.harm=h;buildHarmBtns()}
+function setDisplay(d){
+  S2.showPres=d==='pres';
+  document.getElementById('d-disp').className='btn '+(d==='disp'?'btn-red':'btn-off');
+  document.getElementById('d-pres').className='btn '+(d==='pres'?'btn-org':'btn-off');
+  document.getElementById('disp-note').textContent=S2.showPres?'압력: 닫힌 끝 = 배(최대), 열린 끝 = 마디(최소)':'변위: 닫힌 끝 = 마디(고정), 열린 끝 = 배(최대)';
+}
+function togglePlay2(){S2.playing=!S2.playing;document.getElementById('s2-play').className='btn '+(S2.playing?'btn-red':'btn-grn');document.getElementById('s2-play').textContent=S2.playing?'⏸ 정지':'▶ 재생'}
+function buildHarmBtns(){
+  const c=document.getElementById('harm-btns');c.innerHTML='';
+  const cnt=4;
+  for(let h=1;h<=cnt;h++){
+    const dn=S2.pipe==='closed'?2*h-1:h;
+    const b=document.createElement('div');
+    b.className='btn '+(h===S2.harm?'btn-pur':'btn-off');
+    b.textContent=dn+'차';
+    b.onclick=(()=>{const hh=h;return()=>setHarm(hh)})();
+    c.appendChild(b);
+  }
+}
+
+function drawSim2(t){
+  const cv=document.getElementById('c2');
+  const ctx=setupCanvas(cv,CW,490);
+  const W=CW;
+  ctx.fillStyle='#0c1222';ctx.fillRect(0,0,W,490);
+  ctx.strokeStyle='rgba(148,163,184,0.04)';ctx.lineWidth=1;
+  for(let i=0;i<W;i+=30){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,490);ctx.stroke()}
+  for(let i=0;i<490;i+=30){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke()}
+
+  const pipe=S2.pipe,harm=S2.harm,pres=S2.showPres;
+  const midY=TT+TH/2, om=2*Math.PI*S2.speed, cosT=Math.cos(om*t);
+  const nHalf=pipe==='closed'?(2*harm-1):harm*2;
+  const amp=TH/2*0.75;
+
+  // Tube
+  ctx.fillStyle='rgba(30,58,95,0.4)';ctx.fillRect(TL,TT,TW,TH);
+  ctx.strokeStyle='#3b82f6';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(TL,TT);ctx.lineTo(TR,TT);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(TL,TT+TH);ctx.lineTo(TR,TT+TH);ctx.stroke();
+
+  if(pipe==='closed'){
+    ctx.fillStyle='#1d4ed8';ctx.fillRect(TL-8,TT,12,TH);
+    ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(TL+4,TT);ctx.lineTo(TL+4,TT+TH);ctx.stroke();
+    ctx.save();ctx.fillStyle='#60a5fa';ctx.font='bold 11px Pretendard';ctx.textAlign='center';ctx.translate(TL-20,midY);ctx.rotate(-Math.PI/2);ctx.fillText('수면 (닫힘)',0,0);ctx.restore();
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(TR,TT);ctx.lineTo(TR,TT+TH);ctx.stroke();ctx.setLineDash([]);
+    ctx.save();ctx.fillStyle='#34d399';ctx.font='bold 11px Pretendard';ctx.textAlign='center';ctx.translate(TR+18,midY);ctx.rotate(Math.PI/2);ctx.fillText('열린 끝',0,0);ctx.restore();
+  } else {
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(TL,TT);ctx.lineTo(TL,TT+TH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(TR,TT);ctx.lineTo(TR,TT+TH);ctx.stroke();ctx.setLineDash([]);
+    ctx.save();ctx.fillStyle='#34d399';ctx.font='bold 11px Pretendard';ctx.textAlign='center';ctx.translate(TL-18,midY);ctx.rotate(-Math.PI/2);ctx.fillText('열린 끝',0,0);ctx.restore();
+    ctx.save();ctx.fillStyle='#34d399';ctx.font='bold 11px Pretendard';ctx.textAlign='center';ctx.translate(TR+18,midY);ctx.rotate(Math.PI/2);ctx.fillText('열린 끝',0,0);ctx.restore();
+  }
+
+  // Envelope
+  for(let s=-1;s<=1;s+=2){
+    ctx.strokeStyle=pres?'rgba(249,115,22,0.15)':'rgba(239,68,68,0.15)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();
+    for(let i=0;i<=300;i++){const fr=i/300;const px=TL+fr*TW;
+      let e;if(pres){e=pipe==='closed'?s*amp*Math.cos(fr*nHalf*Math.PI/2):s*amp*Math.sin(fr*nHalf*Math.PI/2)}
+      else{e=pipe==='closed'?s*amp*Math.sin(fr*nHalf*Math.PI/2):s*amp*Math.cos(fr*nHalf*Math.PI/2)}
+      i===0?ctx.moveTo(px,midY-e):ctx.lineTo(px,midY-e);}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // Wave
+  const wc=pres?'#f97316':'#ef4444';
+  ctx.strokeStyle=wc;ctx.lineWidth=3;ctx.shadowColor=wc;ctx.shadowBlur=10;ctx.beginPath();
+  for(let i=0;i<=300;i++){const fr=i/300;const px=TL+fr*TW;
+    let v;if(pres){v=pipe==='closed'?amp*Math.cos(fr*nHalf*Math.PI/2)*cosT:amp*Math.sin(fr*nHalf*Math.PI/2)*cosT}
+    else{v=pipe==='closed'?amp*Math.sin(fr*nHalf*Math.PI/2)*cosT:amp*Math.cos(fr*nHalf*Math.PI/2)*cosT}
+    i===0?ctx.moveTo(px,midY-v):ctx.lineTo(px,midY-v);}
+  ctx.stroke();ctx.shadowBlur=0;
+  ctx.globalAlpha=0.06;ctx.fillStyle=wc;ctx.lineTo(TR,midY);ctx.lineTo(TL,midY);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+
+  // Nodes/Antinodes
+  if(!pres){
+    if(pipe==='closed'){
+      for(let k=0;k<=nHalf;k++){const fr=k*2/nHalf;if(fr>1.01)break;const px=TL+fr*TW;
+        ctx.fillStyle='#fbbf24';ctx.shadowColor='#fbbf24';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,midY,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        ctx.font='bold 10px Pretendard';ctx.textAlign='center';ctx.fillText('N',px,TT+TH+16);}
+      for(let k=0;k<nHalf;k++){const fr=(k*2+1)/nHalf;if(fr>1.01)break;const px=TL+fr*TW;
+        ctx.fillStyle='#22d3ee';ctx.shadowColor='#22d3ee';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(px,midY,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        ctx.font='bold 10px Pretendard';ctx.textAlign='center';ctx.fillText('A',px,TT+TH+16);}
+    } else {
+      for(let k=0;k<=nHalf;k++){const fr=k/nHalf;if(fr>1.01)break;const px=TL+fr*TW;
+        const isA=k%2===0;ctx.fillStyle=isA?'#22d3ee':'#fbbf24';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=6;
+        ctx.beginPath();ctx.arc(px,midY,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        ctx.font='bold 10px Pretendard';ctx.textAlign='center';ctx.fillText(isA?'A':'N',px,TT+TH+16);}
+    }
+  }
+
+  // Length
+  const ay=TT+TH+34;
+  ctx.strokeStyle='#a855f7';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(TL,ay);ctx.lineTo(TR,ay);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(TL,ay-5);ctx.lineTo(TL,ay+5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(TR,ay-5);ctx.lineTo(TR,ay+5);ctx.stroke();
+  ctx.fillStyle='#a855f7';ctx.font='bold 13px Pretendard';ctx.textAlign='center';
+  const mul=pipe==='closed'?2*harm-1:harm;
+  const den=pipe==='closed'?4:2;
+  ctx.fillText(`L = ${mul}λ/${den}`,(TL+TR)/2,ay+18);
+
+  // Title
+  ctx.fillStyle='#f1f5f9';ctx.font='bold 15px Pretendard';ctx.textAlign='left';
+  const oddN=pipe==='closed'?2*harm-1:harm;
+  ctx.fillText(`${pipe==='closed'?'닫힌 관':'열린 관'}  —  ${oddN}차 배진동`,TL,TT-16);
+  ctx.fillStyle=pres?'#f97316':'#ef4444';ctx.font='12px Pretendard';ctx.textAlign='right';
+  ctx.fillText(pres?'압력 분포':'변위 분포',TR,TT-16);
+
+  // Mini harmonics
+  const by=290;
+  ctx.fillStyle='#f1f5f9';ctx.font='bold 14px Pretendard';ctx.textAlign='left';ctx.fillText('배진동 비교',TL,by-8);
+  const mH=36,mG=8;
+  for(let h=1;h<=4;h++){
+    const my=by+(h-1)*(mH+mG);const nH=pipe==='closed'?(2*h-1):h*2;const act=h===harm;
+    if(act){ctx.fillStyle='rgba(168,85,247,0.08)';ctx.fillRect(TL-4,my-2,TW+8,mH+4);ctx.strokeStyle='#a855f7';ctx.lineWidth=1;ctx.strokeRect(TL-4,my-2,TW+8,mH+4)}
+    ctx.strokeStyle=act?'#3b82f6':'rgba(59,130,246,0.3)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(TL,my);ctx.lineTo(TR,my);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(TL,my+mH);ctx.lineTo(TR,my+mH);ctx.stroke();
+    if(pipe==='closed'){ctx.fillStyle=act?'#1d4ed8':'rgba(29,78,216,0.3)';ctx.fillRect(TL-3,my,4,mH)}
+    ctx.strokeStyle=act?'#ef4444':'rgba(239,68,68,0.3)';ctx.lineWidth=act?2:1;
+    const mm=my+mH/2,ma=mH/2*0.8;ctx.beginPath();
+    for(let i=0;i<=200;i++){const fr=i/200;const px=TL+fr*TW;
+      let v=pipe==='closed'?ma*Math.sin(fr*nH*Math.PI/2)*cosT:ma*Math.cos(fr*nH*Math.PI/2)*cosT;
+      i===0?ctx.moveTo(px,mm-v):ctx.lineTo(px,mm-v);}
+    ctx.stroke();
+    ctx.fillStyle=act?'#a855f7':'#94a3b8';ctx.font=(act?'bold ':'')+('11px Pretendard');ctx.textAlign='right';
+    const hdn=pipe==='closed'?2*h-1:h;const hml=pipe==='closed'?`${hdn}차  L=${hdn}λ/4`:`${hdn}차  L=${hdn===1?'':hdn}λ/2`;
+    ctx.fillText(hml,TL-10,mm+4);
+    ctx.textAlign='left';ctx.fillStyle=act?'#34d399':'rgba(52,211,153,0.4)';
+    const fdn=pipe==='closed'?2*h-1:h;ctx.fillText(fdn===1?'f = f₁':`f = ${fdn}f₁`,TR+12,mm+4);
+  }
+
+  // Formula box
+  const fby=by+4*(mH+mG)+10,fbh=60,r=8;
+  ctx.fillStyle='rgba(15,23,42,0.8)';ctx.strokeStyle='rgba(148,163,184,0.15)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(TL+r,fby);ctx.lineTo(TR-r,fby);ctx.arcTo(TR,fby,TR,fby+r,r);ctx.lineTo(TR,fby+fbh-r);ctx.arcTo(TR,fby+fbh,TR-r,fby+fbh,r);ctx.lineTo(TL+r,fby+fbh);ctx.arcTo(TL,fby+fbh,TL,fby+fbh-r,r);ctx.lineTo(TL,fby+r);ctx.arcTo(TL,fby,TL+r,fby,r);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f1f5f9';ctx.font='bold 12px Pretendard';ctx.textAlign='left';
+  ctx.fillText(pipe==='closed'?'닫힌 관 공명 조건':'열린 관 공명 조건',TL+14,fby+18);
+  ctx.fillStyle='#a855f7';ctx.font='14px Pretendard';
+  ctx.fillText(pipe==='closed'?'Lₙ = (2n−1)λ/4    (n = 1, 2, 3, ...)':'Lₙ = nλ/2    (n = 1, 2, 3, ...)',TL+14,fby+38);
+  ctx.fillStyle='#94a3b8';ctx.font='11px Pretendard';
+  ctx.fillText(pipe==='closed'?'홀수 배진동만 존재  |  ΔL = λ/2  |  v = fλ = 2f·ΔL':'모든 배진동 존재  |  ΔL = λ/2  |  v = fλ',TL+14,fby+54);
+}
+
+// ===================== ANIMATION LOOP =====================
+let last=performance.now();
+function loop(now){
+  const dt=(now-last)/1000;last=now;
+  if(S1.playing)S1.time+=dt;
+  if(S2.playing)S2.time+=dt;
+  if(document.getElementById('sim1').style.display!=='none')drawSim1(S1.time);
+  if(document.getElementById('sim2').style.display!=='none')drawSim2(S2.time);
+  requestAnimationFrame(loop);
+}
+buildHarmBtns();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
